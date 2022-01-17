@@ -17,7 +17,7 @@ while True:
 
   except BlockingIOError:
     # No client accepted.
-    ret = othello_module.handling_game(client_socket_list, pair_list, not_matching_list, waiting_list)
+    ret = othello_module.handling_game(client_socket_list, pair_list, not_matching_list, waiting_list, id(server_socket))
     if ret != None:
       for closed_socket in ret:
         for each_pair in pair_list:

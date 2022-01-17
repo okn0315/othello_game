@@ -8,7 +8,7 @@ class othello:
   BLACK   = 2
 
   def __init__(self):
-  
+    """
     self.field = [[0, 0, 0, 0, 0, 0, 0, 0,],
                   [0, 0, 0, 0, 0, 0, 0, 0,],
                   [0, 0, 0, 0, 0, 0, 0, 0,],
@@ -18,15 +18,15 @@ class othello:
                   [0, 0, 0, 0, 0, 0, 0, 0,],
                   [0, 0, 0, 0, 0, 0, 0, 0,],]
     """
-    self.field = [[1, 1, 1, 1, 1, 1, 1, 1,],
-                  [2, 2, 2, 2, 2, 2, 2, 2,],
-                  [1, 2, 1, 2, 1, 1, 1, 1,],
-                  [1, 2, 1, 2, 0, 0, 1, 2,],
-                  [1, 2, 1, 2, 0, 0, 1, 2,],
-                  [1, 2, 1, 2, 1, 2, 2, 2,],
-                  [1, 2, 1, 1, 1, 1, 1, 1,],
-                  [1, 2, 1, 2, 2, 2, 2, 2,],]
-    """
+    self.field = [[0, 0, 0, 0, 0, 0, 0, 0,],
+                  [0, 0, 0, 0, 0, 0, 0, 0,],
+                  [0, 0, 0, 0, 0, 0, 0, 0,],
+                  [0, 0, 0, 0, 0, 0, 0, 0,],
+                  [0, 0, 0, 0, 0, 0, 0, 0,],
+                  [0, 0, 0, 0, 0, 0, 0, 0,],
+                  [0, 0, 0, 0, 0, 0, 0, 0,],
+                  [0, 0, 0, 0, 0, 0, 0, 0,],]
+    
     self.my_color = othello.NOTHING
 
   def other_side(color):
@@ -47,7 +47,7 @@ class othello:
       return 0
 
     while True:
-      look = [x+y for (x, y) in zip(look, direction)]
+      look = [coordinate+dist for (coordinate, dist) in zip(look, direction)]
 
       if min(look[0], look[1]) < 0 or max(look[0], look[1]) > 7:
         break
@@ -72,7 +72,7 @@ class othello:
       return 0
 
     while True:
-      look = [x+y for (x, y) in zip(look, direction)]
+      look = [coordinate+dist for (coordinate, dist) in zip(look, direction)]
 
       if min(look[0], look[1]) < 0 or max(look[0], look[1]) > 7:
         break
@@ -130,12 +130,19 @@ class othello:
   def check_game_over(self):
     num_of_black = 0
     num_of_white = 0
+    can_put_black = False
+    can_put_white = False
     for y in range(8):
       for x in range(8):
         if self.field[y][x] == othello.BLACK:
           num_of_black += 1
         elif self.field[y][x] == othello.WHITE:
           num_of_white += 1
+        elif self.field[y][x] == othello.NOTHING:
+          if self.check_turn_over([x, y], othello.BLACK) != 0:
+            can_put_black = True
+          if self.check_turn_over([x, y], othello.WHITE) != 0:
+            can_put_white = True
     
     if num_of_black + num_of_white == 64:
       if num_of_black > num_of_white:
@@ -143,13 +150,15 @@ class othello:
       elif num_of_black < num_of_white:
         return othello.WHITE
       else:
-        return othello.NOTHING  
+        return othello.NOTHING
 
-    if num_of_black == 0:
-      return othello.WHITE
-    
-    elif num_of_white == 0:
-      return othello.BLACK
+    if can_put_white == False and can_put_black == False:
+      if num_of_white > num_of_black:
+        return othello.WHITE
+      elif num_of_white < num_of_black:
+        return othello.BLACK
+      else:
+        return othello.NOTHING
 
     return None
 
@@ -201,9 +210,21 @@ class ReturnError(Exception):
   pass
 
 
-def server_read_data(data, client_socket_list, matching_list, not_matching_list, waiting_list):
+def server_read_data(data, client_socket_list, matching_list, not_matching_list, waiting_list, server_id):
   if data.data_type == packet.MESSAGE:
-    print(data.data)
+    if data.destination_id == 0:
+      print(str(data.data))
+      for each_sock in client_socket_list:
+        TCP_connection_module.send_data(each_sock, data)
+
+    elif data.destination_id == server_id:
+      print(str(data.data))
+
+    else:
+      for each_sock in client_socket_list:
+        if id(each_sock) == data.destination_id:
+          TCP_connection_module.send_data(each_sock, data)
+          break  
 
   elif data.data_type == packet.OTHELLO_COORDINATE:
     send_data = packet(data.source_id,
@@ -231,7 +252,7 @@ def server_read_data(data, client_socket_list, matching_list, not_matching_list,
 
       elif id(each_pair[1]) == data.source_id:
         not_matching_list.append(each_pair[1])
-        waiting_list.append(each_pair[1])
+        waiting_list.append(each_pair[0])
         matching_list.remove(each_pair)
         break
 
@@ -283,7 +304,7 @@ def server_read_data(data, client_socket_list, matching_list, not_matching_list,
     pass
 
 
-def handling_game(client_socket_list, matching_list, not_matching_list, waiting_list):
+def handling_game(client_socket_list, matching_list, not_matching_list, waiting_list, server_id):
   """
   Outline
     Execute othello game.
@@ -318,7 +339,7 @@ def handling_game(client_socket_list, matching_list, not_matching_list, waiting_
 
   for each_sock_data in recv_data_list:
     for each_recv_data in each_sock_data:
-      server_read_data(each_recv_data, client_socket_list, matching_list ,not_matching_list, waiting_list)
+      server_read_data(each_recv_data, client_socket_list, matching_list ,not_matching_list, waiting_list, server_id)
 
   if len(closed_client_list) == 0:
     return None
@@ -344,7 +365,7 @@ def handling_newclient(server_sock, client_sock, sock_list, not_matching_list):
   sock_list.append(client_sock)
 
   
-  send_data = packet(id(server_sock), id(client_sock), packet.MESSAGE, "Server: Serching opponent...")
+  send_data = packet(id(server_sock), id(client_sock), packet.MESSAGE, "[Server]Serching opponent...")
   TCP_connection_module.send_data(client_sock, send_data)
 
   not_matching_list.append(client_sock)
