@@ -15,6 +15,8 @@ class GUI:
     self.field_black_img = tkinter.PhotoImage(file="othello_field_black.png")
     self.field_white_img = tkinter.PhotoImage(file="othello_field_white.png")
     self.log_img = tkinter.PhotoImage(file="message_wide.png")
+    self.field_black_transparent_img = tkinter.PhotoImage(file="othello_field_black_transparent.png")
+    self.field_white_transparent_img = tkinter.PhotoImage(file="othello_field_white_transparent.png")
     self.num_of_msg_line = 35
     self.msg_list = [""]*self.num_of_msg_line
     self.msg_label_list = []
@@ -130,6 +132,7 @@ class GUI:
   def mouse_move(self, event):
     self.mouse_x = event.x
     self.mouse_y = event.y
+    
 
   def mouse_press(self, event):
     self.mouse_c = True

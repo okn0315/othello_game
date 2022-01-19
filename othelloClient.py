@@ -1,10 +1,9 @@
 import TCP_connection_module
 import othello_module
 import GUI_module
-import threading
 
-ipaddr = "127.0.0.1" #"52.185.167.164"
-port   = 18408 #80
+ipaddr = "127.0.0.1"
+port   = 18408
 
 
 class game_state:
@@ -36,7 +35,7 @@ class GUI(GUI_module.GUI, othello_module.othello):
     self.game = game_state()
     self.game_exit = False
     self.othello_data = othello_module.othello()
-
+    
 
   def window_reflesh_loop(self):
     for j in range(8):
@@ -49,6 +48,12 @@ class GUI(GUI_module.GUI, othello_module.othello):
           self.remove_othello(i, j)
 
     self.msg_reflesh()
+
+    if self.mouse_x > 50 and self.mouse_x < 750 and self.mouse_y > 150 and self.mouse_y < 850:
+      if self.othello_data.my_color == othello_module.othello.BLACK:
+        self.canvas.create_image(self.mouse_x, self.mouse_y, image=self.field_black_transparent_img)
+      elif self.othello_data.my_color == othello_module.othello.WHITE:
+        self.canvas.create_image(self.mouse_x, self.mouse_y, image=self.field_white_transparent_img)
 
     self.root.after(self.loop_distance, self.window_reflesh_loop)
 
@@ -399,6 +404,60 @@ class GUI(GUI_module.GUI, othello_module.othello):
       self.message_entry.delete(0, "end")
       send_data = othello_module.packet(self.my_id, 0, othello_module.packet.MESSAGE, send_txt)
       TCP_connection_module.send_data(self.socket, send_data)
+
+
+  def mouse_move(self, event): #Over load from GUI_module.GUI
+    x = int(self.mouse_x/100)
+    y = int((self.mouse_y-100)/100)
+
+    GUI_module.GUI.mouse_move(self, event)
+    
+    if self.mouse_x > 50 and self.mouse_x < 750 and self.mouse_y > 150 and self.mouse_y < 850:
+
+      for coordinate in [[x-1, y-1], [x, y-1], [x+1, y-1],
+                        [x-1, y  ], [x, y  ], [x+1, y  ],
+                        [x-1, y+1], [x, y+1], [x+1, y+1],]:
+        if coordinate[0] >= 0 and coordinate[0] < 8 and coordinate[1] >= 0 and coordinate[1] < 8:
+          if self.othello_data.field[coordinate[1]][coordinate[0]] == othello_module.othello.NOTHING:
+            self.remove_othello(coordinate[0], coordinate[1])
+
+          elif self.othello_data.field[coordinate[1]][coordinate[0]] == othello_module.othello.BLACK:
+            self.set_othello_black(coordinate[0], coordinate[1])
+
+          elif self.othello_data.field[coordinate[1]][coordinate[0]] == othello_module.othello.WHITE:
+            self.set_othello_white(coordinate[0], coordinate[1])
+
+      if self.othello_data.my_color == othello_module.othello.BLACK:
+        self.canvas.create_image(self.mouse_x, self.mouse_y, image=self.field_black_transparent_img)
+      elif self.othello_data.my_color == othello_module.othello.WHITE:
+        self.canvas.create_image(self.mouse_x, self.mouse_y, image=self.field_white_transparent_img)
+
+
+    """
+    x = self.mouse_x
+    y = self.mouse_y
+    #if self.mouse_x > 50 and self.mouse_x < 750 and self.mouse_y > 150 and self.mouse_y < 850:
+    if x > 50 and x < 750 and y > 150 and y < 850:
+      x_min = max(int( x/100-0.5), 0)
+      y_min = max(int((y-100)/100-0.5), 0)
+      x_max = min(int( x/100+0.5), 7)
+      y_max = min(int((y-100)/100+0.5), 7)
+
+      for coordinate in [[x_min, y_min], [x_min, y_max], [x_max, y_min], [x_max, y_max]]:
+        if self.othello_data.field[coordinate[1]][coordinate[0]] == othello_module.othello.NOTHING:
+           self.remove_othello(coordinate[0], coordinate[1])
+
+        elif self.othello_data.field[coordinate[1]][coordinate[0]] == othello_module.othello.BLACK:
+           self.set_othello_black(coordinate[0], coordinate[1])
+
+        elif self.othello_data.field[coordinate[1]][coordinate[0]] == othello_module.othello.WHITE:
+          self.set_othello_white(coordinate[0], coordinate[1])
+
+      if self.othello_data.my_color == othello_module.othello.BLACK:
+        self.canvas.create_image(self.mouse_x, self.mouse_y, image=self.field_black_transparent_img)
+      elif self.othello_data.my_color == othello_module.othello.WHITE:
+        self.canvas.create_image(self.mouse_x, self.mouse_y, image=self.field_white_transparent_img)
+    """
 
     
 class UnexpectedInput(Exception):
