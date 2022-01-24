@@ -30,6 +30,14 @@ class GUI:
     self.root.bind("<ButtonRelease>", self.mouse_release)
     self.message_width=30
     self.name_width=10
+    self.field_img_id_list=[[None, None, None, None, None, None, None, None],
+                            [None, None, None, None, None, None, None, None],
+                            [None, None, None, None, None, None, None, None],
+                            [None, None, None, None, None, None, None, None],
+                            [None, None, None, None, None, None, None, None],
+                            [None, None, None, None, None, None, None, None],
+                            [None, None, None, None, None, None, None, None],
+                            [None, None, None, None, None, None, None, None],]
 
     for i in range(self.num_of_msg_line):
       self.msg_label_list.append(tkinter.Label(self.canvas, text="", font=("System", 10), bg="black", fg="white"))
@@ -39,7 +47,7 @@ class GUI:
   def title_print(self):
     for i in range(8):
       for j in range(8):
-        self.canvas.create_image(50+i*100, 150+j*100, image=self.field_img)
+        self.field_img_id_list[j][i] = self.canvas.create_image(50+i*100, 150+j*100, image=self.field_img)
 
     self.title_label = tkinter.Label(self.root, text="Yothello", font=("System", 24) )
     self.title_label.place(x=330, y=200)
@@ -74,13 +82,19 @@ class GUI:
     pass
 
   def remove_othello(self, x, y):
-    self.canvas.create_image(50+x*100, 150+y*100, image=self.field_img)
+    if self.field_img_id_list[y][x] != None:
+      self.canvas.delete(self.field_img_id_list[y][x])
+    self.field_img_id_list[y][x] = self.canvas.create_image(50+x*100, 150+y*100, image=self.field_img)
 
   def set_othello_black(self, x,y):
-    self.canvas.create_image(50+x*100, 150+y*100, image=self.field_black_img)
+    if self.field_img_id_list[y][x] != None:
+      self.canvas.delete(self.field_img_id_list[y][x])
+    self.field_img_id_list[y][x] = self.canvas.create_image(50+x*100, 150+y*100, image=self.field_black_img)
 
   def set_othello_white(self, x,y):
-    self.canvas.create_image(50+x*100, 150+y*100, image=self.field_white_img)
+    if self.field_img_id_list[y][x] != None:
+      self.canvas.delete(self.field_img_id_list[y][x])
+    self.field_img_id_list[y][x] = self.canvas.create_image(50+x*100, 150+y*100, image=self.field_white_img)
 
   def print_your_turn(self):
     self.game_state_label["text"] = "あなたの番です"

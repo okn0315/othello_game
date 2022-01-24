@@ -378,8 +378,6 @@ class GUI(GUI_module.GUI, othello_module.othello):
   def retry_button_clicked(self): #Over load from GUI_module.GUI
     GUI_module.GUI.retry_button_clicked(self)
     self.remove_game_message()
-    self.message_entry.place_forget()
-    self.send_message_to_all_button.place_forget()
     self.send_message_to_opponent_button.place_forget()
     self.othello_data = othello_module.othello()
     self.game.state = game_state.WAIT_OPPONENT
